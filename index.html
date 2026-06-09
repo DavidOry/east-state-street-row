@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>East State Street Right-of-Way</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
+  <style>
+    :root {
+      --day: #e23b2e;        /* Day Survey - red */
+      --arsenlis: #2f6fe2;   /* Arsenlis ROW - blue */
+      --panel-bg: rgba(255, 255, 255, 0.96);
+    }
+    html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    #map { position: absolute; inset: 0; }
+
+    .panel {
+      position: absolute; top: 16px; left: 16px; z-index: 2;
+      background: var(--panel-bg); border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+      padding: 16px 18px; width: 260px;
+    }
+    .panel h1 { font-size: 17px; margin: 0 0 2px; color: #1a1a1a; }
+    .panel .sub { font-size: 12px; color: #666; margin: 0 0 14px; }
+    .layer { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-top: 1px solid #ececec; }
+    .layer:first-of-type { border-top: none; }
+    .layer input { margin-top: 2px; width: 16px; height: 16px; accent-color: #333; cursor: pointer; }
+    .layer label { cursor: pointer; flex: 1; }
+    .layer .name { font-size: 14px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 8px; }
+    .layer .desc { font-size: 11.5px; color: #777; margin-top: 2px; }
+    .swatch { width: 22px; height: 12px; border-radius: 2px; flex: none; }
+    .swatch.day { background: rgba(226,59,46,0.30); border: 2px solid var(--day); }
+    .swatch.arsenlis { background: rgba(47,111,226,0.18); border: 2px dashed var(--arsenlis); }
+    .btn { margin-top: 14px; width: 100%; padding: 8px; font-size: 12.5px; font-weight: 600;
+      color: #333; background: #f3f3f3; border: 1px solid #ddd; border-radius: 7px; cursor: pointer; }
+    .btn:hover { background: #ececec; }
+    .note { font-size: 10.5px; color: #999; margin-top: 12px; line-height: 1.4; }
+    .mapboxgl-popup-content { font-size: 12px; line-height: 1.45; }
+    .mapboxgl-popup-content strong { display:block; margin-bottom:3px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="panel">
+    <h1>East State Street Right-of-Way</h1>
+    <p class="sub">Montpelier, Vermont</p>
+
+    <div class="layer">
+      <input type="checkbox" id="toggle-day" checked />
+      <label for="toggle-day">
+        <span class="name"><span class="swatch day"></span>Day Survey</span>
+        <span class="desc">ROW traced from Day Land Surveying plat monuments (A&ndash;LL).</span>
+      </label>
+    </div>
+
+    <div class="layer">
+      <input type="checkbox" id="toggle-arsenlis" />
+      <label for="toggle-arsenlis">
+        <span class="name"><span class="swatch arsenlis"></span>Arsenlis ROW</span>
+        <span class="desc">Placeholder boundary &mdash; replace with the alternate GeoJSON when ready.</span>
+      </label>
+    </div>
+
+    <button class="btn" id="fit-btn">Zoom to right-of-way</button>
+    <p class="note">Toggle either or both definitions. Tap a shape for details.</p>
+  </div>
+
+  <script>
+    /* ---- Day Survey ROW (from east_state_street_row.geojson) ---- */
+    const daySurvey = {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "properties": {
+          "name": "Day Survey ROW",
+          "source": "Day Land Surveying, PLLC — East State Street Right of Way Plat (Job 24095)"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-72.57524042,44.26007846],[-72.5750009,44.25998518],[-72.57462521,44.25985038],
+            [-72.57379938,44.25953568],[-72.57304609,44.25919648],[-72.57255024,44.25896818],
+            [-72.57185921,44.25864731],[-72.57179562,44.25861696],[-72.57132655,44.25839316],
+            [-72.57030563,44.25791728],[-72.570178,44.25785361],[-72.57017624,44.25785545],
+            [-72.56995228,44.25774095],[-72.569949,44.25774438],[-72.56982999,44.25767991],
+            [-72.56881336,44.25715502],[-72.5681795,44.25686273],[-72.5674793,44.25653762],
+            [-72.56619093,44.25596097],[-72.56606943,44.25608755],[-72.56736479,44.25666733],
+            [-72.5675067,44.25673322],[-72.567486,44.25675627],[-72.5680431,44.25701498],
+            [-72.56867173,44.25730485],[-72.56968463,44.2578278],[-72.57016523,44.25806764],
+            [-72.57118833,44.25854453],[-72.57125192,44.25857489],[-72.57172118,44.25879876],
+            [-72.57241394,44.25912043],[-72.57291272,44.2593501],[-72.57294496,44.25931118],
+            [-72.57370482,44.25965334],[-72.57375542,44.25967262],[-72.57453875,44.25997111],
+            [-72.57491364,44.26010566],[-72.57510532,44.26018029],[-72.57524042,44.26007846]
+          ]]
+        }
+      }]
+    };
+
+    /* ---- Arsenlis ROW (PLACEHOLDER box around East State Street) ---- */
+    const arsenlisRow = {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "properties": {
+          "name": "Arsenlis ROW (placeholder)",
+          "source": "Placeholder rectangle — awaiting alternate ROW GeoJSON"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-72.57600, 44.25540],
+            [-72.56540, 44.25540],
+            [-72.56540, 44.26075],
+            [-72.57600, 44.26075],
+            [-72.57600, 44.25540]
+          ]]
+        }
+      }]
+    };
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2aWQtb3J5IiwiYSI6ImNqdGdkZ3EyajAyeWgzeXAyN3g5ZGRzdHMifQ.5Y-TybBtlTLo6SnQzcZbhQ';
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/david-ory/cmq6v20r6000201r4eixt7cv9',
+      center: [-72.57105, 44.25832],
+      zoom: 15.2
+    });
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Bounds covering both definitions, for the "zoom to" button.
+    const bounds = new mapboxgl.LngLatBounds();
+    [daySurvey, arsenlisRow].forEach(fc =>
+      fc.features[0].geometry.coordinates[0].forEach(c => bounds.extend(c))
+    );
+
+    map.on('load', () => {
+      // --- Arsenlis ROW (drawn first, sits under Day Survey) ---
+      map.addSource('arsenlis', { type: 'geojson', data: arsenlisRow });
+      map.addLayer({
+        id: 'arsenlis-fill', type: 'fill', source: 'arsenlis',
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': '#2f6fe2', 'fill-opacity': 0.18 }
+      });
+      map.addLayer({
+        id: 'arsenlis-line', type: 'line', source: 'arsenlis',
+        layout: { visibility: 'none', 'line-join': 'round' },
+        paint: { 'line-color': '#2f6fe2', 'line-width': 3, 'line-dasharray': [2, 1.5] }
+      });
+
+      // --- Day Survey ROW ---
+      map.addSource('day', { type: 'geojson', data: daySurvey });
+      map.addLayer({
+        id: 'day-fill', type: 'fill', source: 'day',
+        paint: { 'fill-color': '#e23b2e', 'fill-opacity': 0.30 }
+      });
+      map.addLayer({
+        id: 'day-line', type: 'line', source: 'day',
+        layout: { 'line-join': 'round' },
+        paint: { 'line-color': '#e23b2e', 'line-width': 2.5 }
+      });
+
+      // Popups
+      const popup = new mapboxgl.Popup({ closeButton: false });
+      [['day-fill','Day Survey ROW'], ['arsenlis-fill','Arsenlis ROW']].forEach(([id]) => {
+        map.on('click', id, (e) => {
+          const p = e.features[0].properties;
+          new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(`<strong>${p.name}</strong>${p.source || ''}`)
+            .addTo(map);
+        });
+        map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', id, () => map.getCanvas().style.cursor = '');
+      });
+
+      map.fitBounds(bounds, { padding: 80, duration: 0 });
+    });
+
+    // --- Toggle controls ---
+    function setVisible(layers, on) {
+      layers.forEach(l => map.getLayer(l) &&
+        map.setLayoutProperty(l, 'visibility', on ? 'visible' : 'none'));
+    }
+    document.getElementById('toggle-day').addEventListener('change', e =>
+      setVisible(['day-fill', 'day-line'], e.target.checked));
+    document.getElementById('toggle-arsenlis').addEventListener('change', e =>
+      setVisible(['arsenlis-fill', 'arsenlis-line'], e.target.checked));
+    document.getElementById('fit-btn').addEventListener('click', () =>
+      map.fitBounds(bounds, { padding: 80 }));
+  </script>
+</body>
+</html>
