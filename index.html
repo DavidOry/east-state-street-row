@@ -11,6 +11,7 @@
     :root {
       --day: #e23b2e;        /* Day Survey - red */
       --arsenlis: #2f6fe2;   /* Arsenlis ROW - blue */
+      --construction: #00e000; /* Construction limit - bright green */
       --panel-bg: rgba(255, 255, 255, 0.96);
     }
     html, body { margin: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -33,6 +34,7 @@
     .swatch { width: 22px; height: 12px; border-radius: 2px; flex: none; }
     .swatch.day { background: rgba(226,59,46,0.30); border: 2px solid var(--day); }
     .swatch.arsenlis { background: rgba(47,111,226,0.18); border: 2px dashed var(--arsenlis); }
+    .swatch.construction { background: rgba(0,224,0,0.12); border: 2px dotted var(--construction); }
     .btn { margin-top: 14px; width: 100%; padding: 8px; font-size: 12.5px; font-weight: 600;
       color: #333; background: #f3f3f3; border: 1px solid #ddd; border-radius: 7px; cursor: pointer; }
     .btn:hover { background: #ececec; }
@@ -61,6 +63,14 @@
       <label for="toggle-arsenlis">
         <span class="name"><span class="swatch arsenlis"></span>Arsenlis ROW</span>
         <span class="desc">Right-of-way from Research conducted by Maria Arsenlis.</span>
+      </label>
+    </div>
+
+    <div class="layer">
+      <input type="checkbox" id="toggle-construction" />
+      <label for="toggle-construction">
+        <span class="name"><span class="swatch construction"></span>Reconstructed roadway footprint</span>
+        <span class="desc">Finished road + sidewalk edge (back-of-sidewalk to back-of-sidewalk) from the East State St 90% plans.</span>
       </label>
     </div>
 
@@ -110,7 +120,7 @@
         "type": "Feature",
         "properties": {
           "name": "Arsenlis ROW",
-          "source": "Derived from '+chr(39)+'East State Street Survey Analysis'+chr(39)+' (Maria Arsenlis)"
+          "source": "Derived from 'East State Street Survey Analysis' (Maria Arsenlis)"
         },
         "geometry": {
           "type": "Polygon",
@@ -454,6 +464,40 @@
       }]
     };
 
+    /* ---- Reconstructed roadway footprint (from reconstructed-roadway-footprint.geojson) ----
+       Hard edge of the finished road + sidewalk (back-of-sidewalk to back-of-sidewalk),
+       digitized from the proposed curb/sidewalk linework on the Montpelier East State St
+       90% layout plan sheets (VHB 59233.00). */
+    const roadwayFootprint = {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "properties": {
+          "name": "Reconstructed roadway footprint",
+          "source": "Montpelier East State Street 90% Plans (VHB 59233.00)"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[
+            [-72.57514304,44.26020762],[-72.57522987,44.26009246],[-72.57502885,44.26002933],[-72.57479222,44.25992852],
+            [-72.57458728,44.25985547],[-72.57426695,44.25972698],[-72.57381297,44.25956789],[-72.57296017,44.25918966],
+            [-72.57242598,44.25893579],[-72.57220149,44.25882151],[-72.57203811,44.25876059],[-72.57188269,44.2586908],
+            [-72.57139786,44.25844249],[-72.571116,44.25833176],[-72.57047749,44.25801307],[-72.57012541,44.25785812],
+            [-72.56978804,44.25768724],[-72.56956981,44.25756687],[-72.56941444,44.25749664],[-72.56901082,44.25727945],
+            [-72.56824726,44.25691401],[-72.56773986,44.2566895],[-72.56747374,44.25656077],[-72.5673124,44.25649771],
+            [-72.56691987,44.25632773],[-72.56669025,44.256219],[-72.56645379,44.25611811],[-72.56617638,44.25597776],
+            [-72.56608784,44.25607994],[-72.56680224,44.25640053],[-72.56698917,44.25649601],[-72.56726662,44.25661166],
+            [-72.56749683,44.25671917],[-72.5676573,44.25678277],[-72.56807982,44.25697897],[-72.5683407,44.25711119],
+            [-72.5686513,44.25724868],[-72.56895025,44.25739971],[-72.56920324,44.2575409],[-72.56950896,44.25768531],
+            [-72.56975738,44.25783276],[-72.57021739,44.25805888],[-72.57067619,44.25827496],[-72.57122256,44.25851485],
+            [-72.5718647,44.258832],[-72.5722153,44.25898832],[-72.57263331,44.25919109],[-72.57313662,44.25942086],
+            [-72.57372245,44.2596812],[-72.57396816,44.25977396],[-72.5742661,44.25986709],[-72.57450646,44.25996666],
+            [-72.57514304,44.26020762]
+          ]]
+        }
+      }]
+    };
+
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2aWQtb3J5IiwiYSI6ImNqdGdkZ3EyajAyeWgzeXAyN3g5ZGRzdHMifQ.5Y-TybBtlTLo6SnQzcZbhQ';
 
     const map = new mapboxgl.Map({
@@ -496,9 +540,17 @@
         paint: { 'line-color': '#e23b2e', 'line-width': 2.5 }
       });
 
+      // --- Construction limit of disturbance (bright green, dotted) ---
+      map.addSource('construction', { type: 'geojson', data: roadwayFootprint });
+      map.addLayer({
+        id: 'construction-line', type: 'line', source: 'construction',
+        layout: { visibility: 'none', 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#00e000', 'line-width': 3, 'line-dasharray': [0.4, 2.2] }
+      });
+
       // Popups
       const popup = new mapboxgl.Popup({ closeButton: false });
-      [['day-fill','Day Survey ROW'], ['arsenlis-fill','Arsenlis ROW']].forEach(([id]) => {
+      [['day-fill','Day Survey ROW'], ['arsenlis-fill','Arsenlis ROW'], ['construction-line','Reconstructed roadway footprint']].forEach(([id]) => {
         map.on('click', id, (e) => {
           const p = e.features[0].properties;
           new mapboxgl.Popup()
@@ -522,6 +574,8 @@
       setVisible(['day-fill', 'day-line'], e.target.checked));
     document.getElementById('toggle-arsenlis').addEventListener('change', e =>
       setVisible(['arsenlis-fill', 'arsenlis-line'], e.target.checked));
+    document.getElementById('toggle-construction').addEventListener('change', e =>
+      setVisible(['construction-line'], e.target.checked));
     document.getElementById('fit-btn').addEventListener('click', () =>
       map.fitBounds(bounds, { padding: 80 }));
   </script>
